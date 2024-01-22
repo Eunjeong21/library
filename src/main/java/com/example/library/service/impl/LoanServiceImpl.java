@@ -101,4 +101,5 @@ public class LoanServiceImpl implements LoanService {
         }
         book.setLoanStatus(LoanStatus.LOANABLE);
     }
+    
 }
