@@ -10,12 +10,14 @@ import com.example.library.dto.ReturnDto;
 import com.example.library.exception.impl.Loan.DelinquencyException;
 import com.example.library.exception.impl.Loan.ExceedingTheLimitException;
 import com.example.library.repository.BookRepository;
+import com.example.library.repository.DelayRepository;
 import com.example.library.repository.LendingDetailRepository;
 import com.example.library.repository.MemberRepository;
 import com.example.library.service.LoanService;
 import com.example.library.type.LoanStatus;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.List;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -29,6 +31,7 @@ public class LoanServiceImpl implements LoanService {
     private final BookRepository bookRepository;
     private final MemberRepository memberRepository;
     private final LendingDetailRepository lendingDetailRepository;
+    private final DelayRepository delayRepository;
 
     // 반납 메소드의 LocalDate.isAfter() 는 하루를 제외해야 하므로 대출 일수는 14일임
     private static final int RETURN_PERIOD = 15;
@@ -91,14 +94,20 @@ public class LoanServiceImpl implements LoanService {
             .orElseThrow(IllegalArgumentException::new);
 
         if (lendingDetail.getExpectedReturnDate().isBefore(LocalDate.now())) {
+            LocalDateTime today = LocalDate.now().atStartOfDay();
+            LocalDateTime expectedReturnDate = lendingDetail.getExpectedReturnDate().atStartOfDay();
+
             int betweenDays =
-                (int) Duration.between(lendingDetail.getExpectedReturnDate(), LocalDate.now()).toDays();
+                (int) Duration.between(expectedReturnDate, today).toDays();
+
             Delay delay = new Delay();
             delay.setLoanableTransitionDate(LocalDate.now().plusDays(betweenDays));
+            delayRepository.save(delay);
             member.setLoanStatus(LoanStatus.DELINQUENCY);
         }
 
-        if (lendingDetail.getExpectedReturnDate().isAfter(LocalDate.now())) {
+        if (lendingDetail.getExpectedReturnDate().isAfter(LocalDate.now())
+        || lendingDetail.getExpectedReturnDate().equals(LocalDate.now())) {
             member.setLoanStatus(LoanStatus.LOANABLE);
         }
         book.setLoanStatus(LoanStatus.LOANABLE);

@@ -1,7 +1,6 @@
 package com.example.library.service.impl;
 
 import static com.example.library.domain.QBookDetail.bookDetail;
-import static com.example.library.domain.QMember.member;
 
 import com.example.library.domain.BookDetail;
 import com.example.library.dto.BookDetailDto;
@@ -75,14 +74,14 @@ public class BookDetailServiceImpl implements BookDetailService {
 
     private BooleanExpression likeTitle(String title) {
         if (StringUtils.hasText(title)) {
-            return member.name.like("%" + title + "%");
+            return bookDetail.title.like("%" + title + "%");
         }
         return null;
     }
 
     private BooleanExpression likeAuthor(String author) {
         if (StringUtils.hasText(author)) {
-            return member.name.like("%" + author + "%");
+            return bookDetail.author.like("%" + author + "%");
         }
         return null;
     }

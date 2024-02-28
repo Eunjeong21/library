@@ -7,6 +7,7 @@ import jakarta.persistence.Entity;
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.EnumType;
 import jakarta.persistence.Enumerated;
+import jakarta.persistence.FetchType;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -19,7 +20,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import org.hibernate.annotations.SQLDelete;
-import org.hibernate.annotations.Where;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -31,7 +31,8 @@ import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 @NoArgsConstructor
 @EntityListeners(AuditingEntityListener.class)
 @SQLDelete(sql = "UPDATE member SET withdrawal_status= true WHERE member_id = ?")
-@Where(clause = "withdrawal_status = true")
+//@Where(clause = "withdrawal_status <> 'true'")
+//@SQLRestriction("status <> 'DELETED'")
 public class Member {
 
     @Id
@@ -71,7 +72,7 @@ public class Member {
     @Enumerated(EnumType.STRING)
     private Permission permission;
 
-    @ManyToOne
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "lending_id")
     private Lending lending;
 }
