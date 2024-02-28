@@ -7,6 +7,8 @@ import com.example.library.domain.LendingDetail;
 import com.example.library.domain.Member;
 import com.example.library.dto.LoanDto;
 import com.example.library.dto.ReturnDto;
+import com.example.library.exception.impl.Loan.DelinquencyException;
+import com.example.library.exception.impl.Loan.ExceedingTheLimitException;
 import com.example.library.repository.BookRepository;
 import com.example.library.repository.LendingDetailRepository;
 import com.example.library.repository.MemberRepository;
@@ -35,7 +37,7 @@ public class LoanServiceImpl implements LoanService {
     @Override
     public void loanBook(LoanDto request) {
         Member member = memberRepository.findById(request.getMemberId())
-            .orElseThrow(RuntimeException::new);
+            .orElseThrow(IllegalArgumentException::new);
 
         checkLoanable(member);
 
@@ -48,7 +50,7 @@ public class LoanServiceImpl implements LoanService {
         lendingDetail.setExpectedReturnDate(LocalDate.now().plusDays(RETURN_PERIOD));
 
         Book book = bookRepository.findById(request.getBookId())
-            .orElseThrow(RuntimeException::new);
+            .orElseThrow(IllegalArgumentException::new);
         book.setLoanStatus(LoanStatus.ON_LOAN);
         lendingDetail.setReturnStatus(false);
         lendingDetail.setBook(book);
@@ -70,23 +72,23 @@ public class LoanServiceImpl implements LoanService {
 
     private static void checkLoanable(Member member) {
         if (member.getLoanStatus().equals(LoanStatus.ON_LOAN)) {
-            throw new RuntimeException("책은 다섯 권까지 빌릴 수 있습니다.");
+            throw new ExceedingTheLimitException();
         }
         if (member.getLoanStatus().equals(LoanStatus.DELINQUENCY)) {
-            throw new RuntimeException("연체 제재 기간 동안에는 대출할 수 없습니다.");
+            throw new DelinquencyException();
         }
     }
 
     @Override
     public void returnBook(ReturnDto request) {
         Member member = memberRepository.findById(request.getMemberId())
-            .orElseThrow(RuntimeException::new);
+            .orElseThrow(IllegalArgumentException::new);
 
         LendingDetail lendingDetail = lendingDetailRepository.findById(request.getLendingDetailId())
-            .orElseThrow(RuntimeException::new);
+            .orElseThrow(IllegalArgumentException::new);
 
         Book book = bookRepository.findById(request.getBookId())
-            .orElseThrow(RuntimeException::new);
+            .orElseThrow(IllegalArgumentException::new);
 
         if (lendingDetail.getExpectedReturnDate().isBefore(LocalDate.now())) {
             int betweenDays =
@@ -101,5 +103,4 @@ public class LoanServiceImpl implements LoanService {
         }
         book.setLoanStatus(LoanStatus.LOANABLE);
     }
-    
 }

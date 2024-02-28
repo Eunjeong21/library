@@ -7,6 +7,9 @@ import com.example.library.dto.ConfirmPasswordDto;
 import com.example.library.dto.JoinMemberDto;
 import com.example.library.dto.ModifyMemberDto;
 import com.example.library.dto.SearchMemberDto;
+import com.example.library.exception.impl.Member.AlreadyWithdrawalException;
+import com.example.library.exception.impl.Member.LoginIdDuplicatedException;
+import com.example.library.exception.impl.Member.WrongConfirmPasswordException;
 import com.example.library.repository.MemberRepository;
 import com.example.library.service.MemberService;
 import com.example.library.type.LoanStatus;
@@ -65,10 +68,10 @@ public class MemberServiceImpl implements MemberService {
     @Override
     public void withdrawalMember(Long id) {
         Member member = memberRepository.findById(id)
-            .orElseThrow(RuntimeException::new);
+            .orElseThrow(IllegalArgumentException::new);
 
         if (member.isWithdrawalStatus()) {
-            throw new IllegalStateException("이미 탈퇴한 회원입니다.");
+            throw new AlreadyWithdrawalException();
         }
 
         memberRepository.deleteById(id);
@@ -124,7 +127,7 @@ public class MemberServiceImpl implements MemberService {
         boolean matches = encoder.matches(request.getInputPassword(), password);
 
         if (!matches) {
-            throw new IllegalArgumentException("비밀번호가 일치하지 않습니다.");
+            throw new WrongConfirmPasswordException();
         }
     }
 
@@ -135,7 +138,7 @@ public class MemberServiceImpl implements MemberService {
     private void checkDuplicatedLoginId(JoinMemberDto request) {
         memberRepository.findByLoginId(request.getLoginId())
             .ifPresent(member -> {
-                throw new IllegalStateException("이미 존재하는 아이디입니다.");
+                throw new LoginIdDuplicatedException();
             });
     }
 }

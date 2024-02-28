@@ -40,6 +40,6 @@
 <br/>
 
 ## ERD
-![](C:\Users\dmswj\Desktop\library (1).png)
+![library (1).png](src%2Fmain%2Fresources%2Flibrary%20%281%29.png)
 
 ※ '데이터베이스 설계 및 구축(오세종)'에서 ERD 일부 참고
